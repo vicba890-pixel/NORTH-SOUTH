@@ -350,7 +350,10 @@ fun GameCockpitScreen(
                 if (isExpanded) {
                     DesktopSidebar(
                         selectedTab = viewModel.selectedTab,
-                        onTabSelect = { viewModel.selectedTab = it },
+                        onTabSelect = {
+                            viewModel.selectedTab = it
+                            isAdmiralMode = false
+                        },
                         isAdmiralMode = isAdmiralMode,
                         onAdmiralModeChange = { isAdmiralMode = it },
                         currentLanguage = viewModel.currentLanguage
@@ -1357,12 +1360,17 @@ fun UnifiedAdmiralCockpit(
                 Tab(
                     selected = auxTab == 0,
                     onClick = { auxTab = 0 },
-                    text = { Text("📡 COMMAND TRANSMITTER FEED", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = if (auxTab == 0) Color.White else Color(0xFF94A3B8)) }
+                    text = { Text("📡 COMMAND TRANSMITTER FEED", fontSize = 8.5.sp, fontWeight = FontWeight.Bold, color = if (auxTab == 0) Color.White else Color(0xFF94A3B8)) }
                 )
                 Tab(
                     selected = auxTab == 1,
                     onClick = { auxTab = 1 },
-                    text = { Text("🔬 SCIENCE TECH TREE", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = if (auxTab == 1) Color.White else Color(0xFF94A3B8)) }
+                    text = { Text("🔬 SCIENCE TECH TREE", fontSize = 8.5.sp, fontWeight = FontWeight.Bold, color = if (auxTab == 1) Color.White else Color(0xFF94A3B8)) }
+                )
+                Tab(
+                    selected = auxTab == 2,
+                    onClick = { auxTab = 2 },
+                    text = { Text("🛡️ SECURE CORE vmsb©", fontSize = 8.5.sp, fontWeight = FontWeight.Bold, color = if (auxTab == 2) Color(0xFF00FFCC) else Color(0xFF94A3B8)) }
                 )
             }
 
@@ -1371,57 +1379,79 @@ fun UnifiedAdmiralCockpit(
                     .weight(1.2f)
                     .fillMaxWidth()
             ) {
-                if (auxTab == 0) {
-                    ChatAndConquestTabs(
-                        regions = regions,
-                        logs = logs,
-                        playerCredits = viewModel.playerCredits,
-                        playerAlloys = viewModel.playerAlloys,
-                        chatInput = viewModel.chatInput,
-                        onChatInputChange = { viewModel.chatInput = it },
-                        onSendMessage = { viewModel.sendChatMessage() },
-                        onConquerRegion = { viewModel.conquerRegion(it) },
-                        onSelectRegionOnMap = { region ->
-                            onRegionSelect(region)
-                            viewModel.mapOffsetX = -(region.longitude.toFloat() * 1.2f * viewModel.zoomScale)
-                            viewModel.mapOffsetY = (region.latitude.toFloat() * 1.2f * viewModel.zoomScale)
-                        },
-                        isLobbyJoined = viewModel.isLobbyJoined,
-                        commanderName = viewModel.commanderName,
-                        commanderFaction = viewModel.commanderFaction,
-                        serverRoomId = viewModel.serverRoomId,
-                        onJoinLobby = { name, faction, roomId ->
-                            viewModel.commanderName = name
-                            viewModel.commanderFaction = faction
-                            viewModel.serverRoomId = roomId
-                            viewModel.isLobbyJoined = true
-                        },
-                        onLeaveLobby = {
-                            viewModel.isLobbyJoined = false
-                        },
-                        currentLanguage = viewModel.currentLanguage,
-                        playerGold = viewModel.playerGold,
-                        playerFood = viewModel.playerFood,
-                        playerManpower = viewModel.playerManpower,
-                        goldGrowthRate = viewModel.goldGrowthRate,
-                        foodGrowthRate = viewModel.foodGrowthRate,
-                        manpowerGrowthRate = viewModel.manpowerGrowthRate,
-                        goldFocusCoeff = viewModel.goldFocusCoeff,
-                        foodFocusCoeff = viewModel.foodFocusCoeff,
-                        manpowerFocusCoeff = viewModel.manpowerFocusCoeff,
-                        onGoldCoeffChange = { viewModel.goldFocusCoeff = it },
-                        onFoodCoeffChange = { viewModel.foodFocusCoeff = it },
-                        onManpowerCoeffChange = { viewModel.manpowerFocusCoeff = it },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    ResearchLabTab(
-                        techs = techs,
-                        playerAlloys = viewModel.playerAlloys,
-                        onUnlockTech = { viewModel.unlockTechnology(it) },
-                        currentLanguage = viewModel.currentLanguage,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                when (auxTab) {
+                    0 -> {
+                        ChatAndConquestTabs(
+                            regions = regions,
+                            logs = logs,
+                            playerCredits = viewModel.playerCredits,
+                            playerAlloys = viewModel.playerAlloys,
+                            chatInput = viewModel.chatInput,
+                            onChatInputChange = { viewModel.chatInput = it },
+                            onSendMessage = { viewModel.sendChatMessage() },
+                            onConquerRegion = { viewModel.conquerRegion(it) },
+                            onSelectRegionOnMap = { region ->
+                                onRegionSelect(region)
+                                viewModel.mapOffsetX = -(region.longitude.toFloat() * 1.2f * viewModel.zoomScale)
+                                viewModel.mapOffsetY = (region.latitude.toFloat() * 1.2f * viewModel.zoomScale)
+                            },
+                            isLobbyJoined = viewModel.isLobbyJoined,
+                            commanderName = viewModel.commanderName,
+                            commanderFaction = viewModel.commanderFaction,
+                            serverRoomId = viewModel.serverRoomId,
+                            onJoinLobby = { name, faction, roomId ->
+                                viewModel.commanderName = name
+                                viewModel.commanderFaction = faction
+                                viewModel.serverRoomId = roomId
+                                viewModel.isLobbyJoined = true
+                            },
+                            onLeaveLobby = {
+                                viewModel.isLobbyJoined = false
+                            },
+                            currentLanguage = viewModel.currentLanguage,
+                            playerGold = viewModel.playerGold,
+                            playerFood = viewModel.playerFood,
+                            playerManpower = viewModel.playerManpower,
+                            goldGrowthRate = viewModel.goldGrowthRate,
+                            foodGrowthRate = viewModel.foodGrowthRate,
+                            manpowerGrowthRate = viewModel.manpowerGrowthRate,
+                            goldFocusCoeff = viewModel.goldFocusCoeff,
+                            foodFocusCoeff = viewModel.foodFocusCoeff,
+                            manpowerFocusCoeff = viewModel.manpowerFocusCoeff,
+                            onGoldCoeffChange = { viewModel.goldFocusCoeff = it },
+                            onFoodCoeffChange = { viewModel.foodFocusCoeff = it },
+                            onManpowerCoeffChange = { viewModel.manpowerFocusCoeff = it },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    1 -> {
+                        ResearchLabTab(
+                            techs = techs,
+                            playerAlloys = viewModel.playerAlloys,
+                            onUnlockTech = { viewModel.unlockTechnology(it) },
+                            currentLanguage = viewModel.currentLanguage,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    else -> {
+                        val zkpMoves by viewModel.zkpMoves.collectAsState()
+                        com.example.ui.game.SecureCoreTab(
+                            currentLanguage = viewModel.currentLanguage,
+                            playerCredits = viewModel.playerCredits,
+                            playerAlloys = viewModel.playerAlloys,
+                            onAdjustCredits = { viewModel.playerCredits += it },
+                            onAddLog = { sender, msg, type -> viewModel.insertLog(sender, msg, type) },
+                            audioEngine = viewModel.audioEngine,
+                            isGameZkpEnforced = viewModel.isGameZkpEnforced,
+                            onGameZkpEnforcedChange = { viewModel.isGameZkpEnforced = it },
+                            zkpMoves = zkpMoves,
+                            zkpTamperWarning = viewModel.zkpTamperWarning,
+                            onDismissTamperWarning = { viewModel.zkpTamperWarning = null },
+                            onSimulateTamper = { viewModel.simulateTamperedTransition() },
+                            onClearZkpMoves = { viewModel.clearZkpVerificationLedger() },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
 

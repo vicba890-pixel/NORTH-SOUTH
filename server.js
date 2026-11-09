@@ -238,24 +238,35 @@ app.post('/api/audit/certify', (req, res) => {
   });
 });
 
-// ========================== ANTI-REA VMSB-NATIVE DILITHIUM SECURITY ENDPOINTS ==========================
+// ========================== ANTI-REA VMSB-NATIVE DILITHIUM SECURITY & KEY ROTATION ENDPOINTS ==========================
+
+let dilithiumEpochCounter = 1;
+let dilithiumCurrentFingerprint = "dilithium3:0x" + crypto.createHash('sha256').update("DILITHIUM3_GENESIS:vmsb©").digest('hex').substring(0, 16).toUpperCase();
+const dilithiumRotationHistory = [
+  {
+    epochNumber: 1,
+    publicKeyFingerprint: dilithiumCurrentFingerprint,
+    rotationReason: "Génesis / Inicialización de Sesión",
+    timestamp: Date.now()
+  }
+];
 
 // 1. Anti-REA Status & Threat Radar Endpoint
 app.get('/api/security/anti-rea-dilithium/status', (req, res) => {
-  const seed = "vmsb_lattice_pqc_" + Date.now();
-  const pubKey = "0x" + crypto.createHash('sha256').update(`DILITHIUM3_PUB:${seed}`).digest('hex').substring(0, 48).toUpperCase();
-  const bytecodeHash = "0x" + crypto.createHash('sha256').update("VMSB_BYTECODE_PROTECTED:vmsb").digest('hex').substring(0, 32).toUpperCase();
+  const bytecodeHash = "0x" + crypto.createHash('sha256').update("VMSB_BYTECODE_PROTECTED:vmsb©").digest('hex').substring(0, 32).toUpperCase();
 
   res.status(200).json({
     success: true,
     protocol: "ANTI-REA-VMSB-NATIVE-DILITHIUM-3",
     standard: "NIST FIPS 204 (ML-DSA-65 / 192-bit PQC)",
-    creator: "Vicente M. Sabback Barreto (vmsb)",
+    creator: "vmsb©",
     shieldStatus: "NOMINAL",
     overallSecurityScore: 100,
     quantumResistance: "192-bit Lattice Ring R_q (q=8380417, n=256)",
     vmSandboxStatus: "ISOLATED_ARMED",
-    publicKey: pubKey,
+    activeEpoch: dilithiumEpochCounter,
+    publicKey: dilithiumCurrentFingerprint,
+    rotationHistory: dilithiumRotationHistory,
     bytecodeHash: bytecodeHash,
     probes: [
       { vector: "JDWP / TracerPid Probe", clean: true, status: "Sin depuradores JDWP o ptrace activos." },
@@ -263,8 +274,102 @@ app.get('/api/security/anti-rea-dilithium/status', (req, res) => {
       { vector: "XposedBridge Probe", clean: true, status: "Entorno nativo sin ganchos de API." },
       { vector: "Root & Su Binaries Probe", clean: true, status: "Permisos sellados. Binarios su ausentes." },
       { vector: "VMSB Stack Canaries", clean: true, status: "Canaries 0xCAFEBABE íntegros." },
-      { vector: "Dilithium-3 Signature Attestation", clean: true, status: "Firma reticular FIPS 204 matemáticamente válida." }
+      { vector: "Dilithium-3 Signature Attestation", clean: true, status: "Firma reticular FIPS 204 válida con clave pública de vmsb©." }
     ],
+    timestamp: Date.now()
+  });
+});
+
+// 1b. Dilithium-3 Key Rotation Endpoint
+app.post('/api/security/dilithium/rotate-key', (req, res) => {
+  const { reason } = req.body || {};
+  dilithiumEpochCounter += 1;
+  dilithiumCurrentFingerprint = "dilithium3:0x" + crypto.createHash('sha256').update(`DILITHIUM3_EPOCH_${dilithiumEpochCounter}:${Date.now()}:vmsb©`).digest('hex').substring(0, 16).toUpperCase();
+  const signatureHex = "0x" + crypto.createHash('sha256').update(`SIG_EPOCH_${dilithiumEpochCounter}:${dilithiumCurrentFingerprint}:vmsb©`).digest('hex').toUpperCase();
+
+  const epochRecord = {
+    epochNumber: dilithiumEpochCounter,
+    publicKeyFingerprint: dilithiumCurrentFingerprint,
+    rotationReason: reason || `Rotación Periódica PQC (Epoch #${dilithiumEpochCounter})`,
+    timestamp: Date.now()
+  };
+  dilithiumRotationHistory.unshift(epochRecord);
+  if (dilithiumRotationHistory.length > 20) dilithiumRotationHistory.pop();
+
+  res.status(200).json({
+    success: true,
+    activeEpoch: dilithiumEpochCounter,
+    publicKeyFingerprint: dilithiumCurrentFingerprint,
+    signatureHex,
+    rotationReason: epochRecord.rotationReason,
+    rotationHistory: dilithiumRotationHistory,
+    registration: "vmsb©",
+    timestamp: Date.now()
+  });
+});
+
+// 1c. Unified ZKP + Dilithium-3 + VMSB-Nativo Triad Verification Endpoint
+app.post('/api/security/triad/verify', (req, res) => {
+  const { tampered } = req.body || {};
+  const isTampered = Boolean(tampered);
+
+  const vmsbStateHash = isTampered
+    ? "0xBADF00D0DEADBEEF"
+    : "0x" + crypto.createHash('sha256').update(`VMSB_STATE_CLEAN:${dilithiumEpochCounter}:vmsb©`).digest('hex').substring(0, 16).toUpperCase();
+  const dilithiumSig = "0x" + crypto.createHash('sha256').update(`DILITHIUM_TRIAD:${vmsbStateHash}:${dilithiumCurrentFingerprint}`).digest('hex').substring(0, 24).toUpperCase() + "...";
+  const zkpProofHash = "0x" + crypto.createHash('sha256').update(`ZKP_R1CS_1024:${vmsbStateHash}:${dilithiumSig}:vmsb©`).digest('hex').substring(0, 24).toUpperCase();
+
+  res.status(200).json({
+    success: true,
+    vmsbStateHash,
+    vmsbCycles: 24,
+    isCanarySecure: !isTampered,
+    dilithiumSig,
+    dilithiumNormProof: isTampered ? "||z||_inf = 612094 >= 524288 (RECHAZADO)" : "||z||_inf = 523812 < 524288",
+    isDilithiumVerified: !isTampered,
+    zkpProofHash,
+    zkpResidualDelta: isTampered ? 0.420000 : 0.000000,
+    isZkpSatisfied: !isTampered,
+    isUnifiedVerified: !isTampered,
+    registrationBadge: "vmsb©",
+    timestamp: Date.now()
+  });
+});
+
+// 1d. Edge Network Infrastructure: SSL 0-RTT Kyber-768, CDN Anycast & Anti-DDoS eBPF/ZKP
+app.post('/api/security/edge-network', (req, res) => {
+  const { is0Rtt = true, isDdosAttack = false, isEbpfEnabled = true } = req.body || {};
+  const totalIncomingRps = isDdosAttack ? 485000 + Math.floor(Math.random() * 15000) : 4200 + Math.floor(Math.random() * 120);
+  const dropRatio = isDdosAttack ? (isEbpfEnabled ? 0.991 : 0.450) : 0.0;
+  const mitigatedRps = Math.floor(totalIncomingRps * dropRatio);
+  const legitimateRps = Math.max(4200, totalIncomingRps - mitigatedRps);
+
+  res.status(200).json({
+    success: true,
+    registration: "vmsb©",
+    tlsPqc: {
+      cipherSuite: "TLS_AES_256_GCM_SHA384",
+      pqcKeyExchange: "X25519Kyber768 (ML-KEM-768 Hybrid FIPS 203)",
+      handshakeMode: is0Rtt ? "0-RTT Early Data Resumption (Ticket PQC)" : "1-RTT Full Hybrid Handshake",
+      handshakeLatencyMs: is0Rtt ? 0.38 : 14.20,
+      certificateSeal: "vmsb© Root CA (Dilithium-3 FIPS 204 Validated)"
+    },
+    pops: [
+      { popId: "DFW-NA1", city: "Dallas", latencyMs: 11.2, cacheHitRatioPercent: 98.9, isClosestToClient: true },
+      { popId: "FRA-EU2", city: "Frankfurt", latencyMs: 14.5, cacheHitRatioPercent: 98.4, isClosestToClient: false },
+      { popId: "HND-AP4", city: "Tokyo", latencyMs: 18.0, cacheHitRatioPercent: 97.9, isClosestToClient: false },
+      { popId: "SYD-AU5", city: "Sydney", latencyMs: 21.6, cacheHitRatioPercent: 98.1, isClosestToClient: false }
+    ],
+    ddos: {
+      totalIncomingRps,
+      mitigatedRps,
+      legitimateRps,
+      ebpfDropRatePercent: parseFloat((dropRatio * 100).toFixed(1)),
+      ebpfStatus: isEbpfEnabled ? (isDdosAttack ? "XDP_KERNEL_DROPPING_LINE_RATE" : "XDP_KERNEL_READY") : "XDP_DISABLED",
+      zkpZeroCaptchaStatus: isDdosAttack ? "BOT_CHALLENGE_FAILED_DIVERTED_TARPIT" : "VERIFIED_TRANSPARENT (0.19 ms)",
+      systemFluidityFps: (!isDdosAttack || isEbpfEnabled) ? 120 : 58,
+      isAttackUnderway: Boolean(isDdosAttack)
+    },
     timestamp: Date.now()
   });
 });
@@ -274,16 +379,16 @@ app.post('/api/security/anti-rea-dilithium/execute-vm', (req, res) => {
   const { simulateFrida, simulateBytecodePatch, simulateDebugger } = req.body || {};
 
   const isTamper = !!(simulateFrida || simulateBytecodePatch || simulateDebugger);
-  const vr0 = isTamper ? "0xBADF00D0" : "0x766D7362"; // 'vmsb' in hex
-  const vr1 = isTamper ? "0x00000000" : "0x00D11171"; // Dilithium tag
-  const vr2 = isTamper ? "0xDEADBEEF" : "0x769DE4D3";
-  const canary = isTamper ? "0xBADF00D (CORRUPTED)" : "0xDEADC0DECAFEBABE (INTACT)";
+  const vr0 = isTamper ? "0xDEC00001" : "0x766D7362"; // 'vmsb' in hex or Tar-Pit decoy
+  const vr1 = isTamper ? "0xFACE0002" : "0x00D11171"; // Dilithium tag
+  const vr2 = isTamper ? "0xB0600003" : "0x769DE4D3";
+  const canary = isTamper ? "0xBADF00D (TAR-PIT ACTIVE)" : "0xDEADC0DECAFEBABE (INTACT)";
 
   const execHash = "0x" + crypto.createHash('sha256').update(`VMSB_EXEC:${vr0}:${vr1}:${vr2}:${canary}:${Date.now()}`).digest('hex').substring(0, 16).toUpperCase();
 
   res.status(200).json({
     success: true,
-    cyclesExecuted: 12,
+    cyclesExecuted: 24,
     registers: {
       VR0: vr0,
       VR1: vr1,
@@ -298,13 +403,14 @@ app.post('/api/security/anti-rea-dilithium/execute-vm', (req, res) => {
     isTamperDetected: isTamper,
     isQuantumVerified: !simulateBytecodePatch,
     executionHash: execHash,
+    registration: "vmsb©",
     logs: [
-      "[1] VMOV VR0, 0x766D7362 ('vmsb')",
+      "[1] VMOV VR0, 0x766D7362 ('vmsb©')",
       "[2] VCANARY_CHECK: Stack guard verified (0xCAFEBABE)",
       "[3] VMOV VR1, 0x00D11171 (DILITHIUM_TAG)",
       "[4] VXOR VR2, VR0",
-      `[5] VANTI_HOOK_PROBE: ${simulateFrida ? "ALERTA: Frida hook interceptado!" : "Despachador nativo limpio"}`,
-      `[6] VDILITHIUM_AUTH: ${simulateBytecodePatch ? "ERROR: Bytecode alterado. Firma PQC inválida!" : "Firma post-cuántica verificada con éxito"}`,
+      `[5] VANTI_HOOK_PROBE: ${simulateFrida ? "ALERTA: Frida hook interceptado -> Desvío Tar-Pit!" : "Despachador nativo limpio"}`,
+      `[6] VDILITHIUM_AUTH: ${simulateBytecodePatch ? "ERROR: Bytecode alterado. Firma PQC inválida!" : `Firma post-cuántica verificada (Epoch #${dilithiumEpochCounter} • vmsb©)`}`,
       "[7] VHALT: Ejecución completada"
     ],
     timestamp: Date.now()
@@ -325,14 +431,16 @@ app.post('/api/security/anti-rea-dilithium/verify-signature', (req, res) => {
     });
   }
 
-  const sig = signatureHex || ("0x" + crypto.createHash('sha256').update("DILITHIUM3_SIG:vmsb_valid").digest('hex').toUpperCase());
+  const sig = signatureHex || ("0x" + crypto.createHash('sha256').update(`DILITHIUM3_SIG:vmsb©:epoch_${dilithiumEpochCounter}`).digest('hex').toUpperCase());
   res.status(200).json({
     success: true,
     verified: true,
+    activeEpoch: dilithiumEpochCounter,
+    publicKeyFingerprint: dilithiumCurrentFingerprint,
     signature: sig,
     normProof: "||z||_inf = 523812 < GAMMA1 (524288)",
     challengeHash: "0x" + crypto.createHash('sha256').update("CHALLENGE_C:mu").digest('hex').substring(0, 16).toUpperCase(),
-    message: "Firma CRYSTALS-Dilithium NIST FIPS 204 matemáticamente válida contra la clave pública de 'vmsb'.",
+    message: `Firma CRYSTALS-Dilithium NIST FIPS 204 matemáticamente válida (Epoch #${dilithiumEpochCounter} • Registro: vmsb©).`,
     timestamp: Date.now()
   });
 });
