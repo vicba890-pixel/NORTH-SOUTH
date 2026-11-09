@@ -1,0 +1,18 @@
+{
+  "name": "North & South World",
+  "short_name": "NorthSouth",
+  "description": "Tactical real-time conquest simulation of the classic North & South game with native audio, Zero-Knowledge proofs, and serverless sync.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#00ff88",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

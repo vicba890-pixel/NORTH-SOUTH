@@ -1,0 +1,6 @@
+{
+  "name": "North&South World",
+  "description": "An immersive real-time tactical conquest simulation of the classic North&South game with dynamic native audio wave synthesis, space descents, and logical math feedback modules.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

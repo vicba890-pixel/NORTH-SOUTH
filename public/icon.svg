@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Radial Gradient -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0e172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </radialGradient>
+    
+    <!-- Neon Gradients -->
+    <linearGradient id="neonCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5ff" />
+      <stop offset="100%" stop-color="#00838f" />
+    </linearGradient>
+    <linearGradient id="neonGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00ff88" />
+      <stop offset="100%" stop-color="#00a152" />
+    </linearGradient>
+    
+    <!-- Glow Filters -->
+    <filter id="glowEffect" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Card -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGlow)" stroke="#1e293b" stroke-width="6" />
+
+  <!-- Outer Orbital Tactical Rings -->
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#334155" stroke-dasharray="8, 12" stroke-width="2" />
+  <circle cx="256" cy="256" r="160" fill="none" stroke="url(#neonCyan)" stroke-width="2" opacity="0.3" />
+  <circle cx="256" cy="256" r="130" fill="none" stroke="url(#neonGreen)" stroke-width="3" opacity="0.6" filter="url(#glowEffect)" />
+
+  <!-- Crosshair Guides -->
+  <line x1="256" y1="50" x2="256" y2="462" stroke="#475569" stroke-width="1.5" stroke-dasharray="4, 4" />
+  <line x1="50" y1="256" x2="462" y2="256" stroke="#475569" stroke-width="1.5" stroke-dasharray="4, 4" />
+
+  <!-- Shield Shape -->
+  <path d="M 256,150 C 310,150 350,180 350,230 C 350,300 280,360 256,380 C 232,360 162,300 162,230 C 162,180 202,150 256,150 Z" 
+        fill="none" stroke="url(#neonCyan)" stroke-width="5" filter="url(#glowEffect)" />
+
+  <!-- Inner Grid pattern representation -->
+  <path d="M 216,210 H 296 M 216,256 H 296 M 216,302 H 296 M 230,200 V 310 M 256,200 V 310 M 282,200 V 310" 
+        fill="none" stroke="#1e293b" stroke-width="2" opacity="0.8" />
+
+  <!-- North Star Core (Top Diamond) -->
+  <polygon points="256,90 264,110 284,110 268,122 274,142 256,130 238,142 244,122 228,110 248,110" 
+           fill="#ffffff" stroke="url(#neonGreen)" stroke-width="2" filter="url(#glowEffect)" />
+
+  <!-- Tactile Coordinate Letters -->
+  <!-- 'N' at the Top -->
+  <text x="256" y="80" fill="#00ff88" font-family="monospace" font-size="28" font-weight="900" text-anchor="middle">N</text>
+  
+  <!-- 'S' at the Bottom -->
+  <text x="256" y="445" fill="#00e5ff" font-family="monospace" font-size="28" font-weight="900" text-anchor="middle">S</text>
+
+  <!-- Central Energy Core (Orbiting Atom / Satellite) -->
+  <circle cx="256" cy="256" r="16" fill="#ffffff" stroke="url(#neonGreen)" stroke-width="3" filter="url(#glowEffect)" />
+</svg>
